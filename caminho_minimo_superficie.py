@@ -86,12 +86,11 @@ while True:
 
 distancia, caminho_minimo = dijkstra(grafo, PONTO_INICIAL, PONTO_FINAL)
   
-# CRIA O CAMINHO MÍNIMO DA SUPERFÍCIE DISCRETA
+  
+  
 figura = plt.figure()
 eixos = figura.add_subplot(111, projection="3d")
 arestas_caminho_minimo = list(zip(caminho_minimo, caminho_minimo[1:]))
-
-
 
 # var_u = np.outer(np.linspace(-1, 1, 50), np.ones(50)) 
 # var_v = var_u.copy().T 
@@ -99,8 +98,6 @@ arestas_caminho_minimo = list(zip(caminho_minimo, caminho_minimo[1:]))
 
 for aresta in np.array([[superficie[u], superficie[v]] for u, v in grafo.edges()]):
   eixos.plot(*aresta[0:2].T, lw=1, color='tab:gray')
-
-
 
 aresta_superficie = np.array([[superficie[u], superficie[v]] for u, v in arestas_caminho_minimo])
 gradiante = np.linspace(0, 1, len(aresta_superficie))
