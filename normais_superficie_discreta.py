@@ -27,14 +27,14 @@ def modulo(v):
 
 
 # GERA PONTOS ALEATORIOS NO ESPAÇO 2D E SALVA EM "pontos_aleatorios.txt"
-arquivo = open('pontos_aleatorios.txt','w')
-
-for i in range(TOTAL_PONTOS):
-  u = random.uniform(-1,1)
-  v = random.uniform(-1,1)
-  arquivo.write(f'{u};{v}\n')
-
-arquivo.close()
+# arquivo = open('pontos_aleatorios.txt','w')
+# 
+# for i in range(TOTAL_PONTOS):
+#   u = random.uniform(-1,1)
+#   v = random.uniform(-1,1)
+#   arquivo.write(f'{u};{v}\n')
+# 
+# arquivo.close()
 
 dados = np.loadtxt('pontos_aleatorios.txt', delimiter=';')
 
