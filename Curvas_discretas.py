@@ -2,7 +2,6 @@ import sympy
 import matplotlib.pyplot as plt
 import numpy as np
 import plotly.graph_objects as go
-import plotly.figure_factory as ff
 from math import cos, sin, pi
 from sympy import diff, Matrix, symbols, sin, cos, simplify, sqrt
 
