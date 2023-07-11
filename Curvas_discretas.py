@@ -1,116 +1,147 @@
+import sympy
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.graph_objects as go
+import plotly.figure_factory as ff
 from math import cos, sin, pi
+from sympy import diff, Matrix, symbols, sin, cos, simplify, sqrt
 
-fig = plt.figure()
-ax = fig.gca(projection='3d')
+_t = symbols("t")
 
 # Constantes
-NUMERO_DE_PONTOS = 20
-CURVA = 0 # CURVA A SER UTILIZADA (0 - 2)
-T0 = 0
-T1 = pi
-L = 0.1   # tamanho da seta
+TOTAL_POINTS = 20
+T_0 = 1
+T_1 = pi
 
-def derivar(array):
+def curve(t):
+  return [sin(t), cos(t), t]
+  # return [sin(t), cos(t), 1]
+  # return [t, t**2, t**3]
+
+def diferenca_finita(array):
   n = array.shape[0]
-  m = array.shape[1]
-  new_array = np.zeros((n - 1, m))
-  for i in range(n - 1):
-    new_array[i, :] = (array[i + 1] - array[i]) / 2
-  
-  return new_array
+  return 0.5*(array[1:] - array[:n-1])
 
 def vetor_unitario(v):
   if (v == [0, 0, 0]).all == True:
     return [0, 0, 0]
 
-  return v / modulo(v)
-
-def modulo(v):
-  return (v[0]**2 + v[1]**2 + v[2]**2)**0.5
-
-def f1(t: float):
-  return [cos(t), sin(t), t]
-
-def f1T(t):
-  return np.array([-sin(t), cos(t), 1]) / (2)**0.5
-def f1N(t):
-  return np.array([-cos(t), -sin(t), 0])
-def f1B(t):
-  return np.array([sin(t), -cos(t), 1]) / (2)**0.5
+  return v/np.sqrt(np.diag(v.dot(v.T))).reshape((v.shape[0],1))
 
 
 
-def f2(t: float):
-  return [t, t*t, t**3]
+F = Matrix(curve(_t))
+T = simplify(F.diff(_t))
+T = simplify(T/sqrt(T.dot(T)))
+N = simplify(T.diff(_t))
+N = simplify(N/sqrt(N.dot(N)))
+B = simplify(T.cross(N))
 
-def f2T(t):
-  return np.array([1, 2*t, 3*t**2]) / (1 + 4*t**2 + 9*t**4)**0.5
-def f2N(t):
-  return np.array([-18*t**3 - 4*t, 2 - 18*t**4, 16*t**3 + 6*t]) / (4 + 52*t**2 + 264*t**4 + 580*t**6 + 324*t**8)**0.5
-def f2B(t):
-  return np.array([6*t**2 + 32*t**4 + 54*t**6, -6*t - 28*t**3 - 54*t**5, 2 + 8*t**2 + 18*t**4]) / (4 + 58*t**2 + 508*t**4 + 2104*t**6 + 5020*t**8 + 6516*t**10 + 2916*t**12)**0.5
+dt = (T_1 - T_0) / TOTAL_POINTS
+POSITION = np.zeros((TOTAL_POINTS, 3))
+m_TANGENT = np.zeros((TOTAL_POINTS - 1, 3))
+m_NORMAL = np.zeros((TOTAL_POINTS - 2, 3))
+m_BINORMAL = np.zeros((TOTAL_POINTS - 2, 3))
 
-
-def f3(t: float):
-  return [sin(t), cos(t), 1]
-
-def f3T(t):
-  return np.array([cos(t), -sin(t), 0])
-def f3N(t):
-  return np.array([-sin(t), -cos(t), 0])
-def f3B(t):
-  return np.array([0, 0, -1])
-
-
-dt = (T1 - T0) / NUMERO_DE_PONTOS
-pos = np.zeros((NUMERO_DE_PONTOS, 3))
-tanM = np.zeros((NUMERO_DE_PONTOS - 1, 3))
-norM = np.zeros((NUMERO_DE_PONTOS - 2, 3))
-binM = np.zeros((NUMERO_DE_PONTOS - 2, 3))
-
-for i in range(NUMERO_DE_PONTOS):
-  t = T0 + i * dt
-  exec(F'pos[i, :] = f{CURVA}(t)')
+for i in range(TOTAL_POINTS):
+  t = T_0 + i * dt
+  POSITION[i, :] = np.ravel(F.subs(_t, t))
 
   if i > 0:
-    exec(F'tanM[i-1, :] = f{CURVA}(t)')
+    m_TANGENT[i-1, :] = np.ravel(T.subs(_t, t))
   if i > 1:
-    exec(F'norM[i-2, :] = f{CURVA}(t)')
-    exec(F'binM[i-2, :] = f{CURVA}(t)')
-
+    m_NORMAL[i-2, :] = np.ravel(N.subs(_t, t))
+    m_BINORMAL[i-2, :] = np.ravel(B.subs(_t, t))
 
 # Calculo do Triedo de Frenet
-dpos_dt = derivar(pos)
+dpos = diferenca_finita(POSITION)
+c_TANGENT = np.zeros((TOTAL_POINTS - 1, 3))
+c_TANGENT = vetor_unitario(dpos)
 
-Tangente = np.zeros((NUMERO_DE_PONTOS - 1, 3))
+for i in c_TANGENT:
+  (i, np.linalg.norm(i))
+dtan = diferenca_finita(c_TANGENT)
+c_NORMAL = np.zeros((TOTAL_POINTS - 2, 3))
+c_NORMAL = vetor_unitario(dtan)
+c_BINORMAL = np.cross(c_TANGENT[1:], c_NORMAL)
 
-for i in range(NUMERO_DE_PONTOS - 1):
-  Tangente[i, :] = vetor_unitario(dpos_dt[i, :])
+fig = go.Figure()
+fig.add_trace(go.Scatter3d(
+                    x=POSITION[:,0],
+                    y=POSITION[:,1],
+                    z=POSITION[:,2],
+                    mode='lines'
+                  ))
 
-dTangente_dt = derivar(Tangente)
-Normal = np.zeros((NUMERO_DE_PONTOS - 2, 3))
-for i in range(NUMERO_DE_PONTOS - 2):
-  Normal[i, :] = vetor_unitario(dTangente_dt[i, :])
+fig.add_trace(go.Cone(
+                    colorscale= [[0, "blue"], [1, "blue"]],
+                    x=POSITION[1:,0],
+                    y=POSITION[1:,1],
+                    z=POSITION[1:,2],
+                    u=c_TANGENT[:,0],
+                    v=c_TANGENT[:,1],
+                    w=c_TANGENT[:,2],
+                    anchor= "tip",
+                  ))
 
-Binormal = np.cross(Tangente[1:, :], Normal[:, :])
+fig.add_trace(go.Cone(
+                    colorscale= [[0, "red"], [1, "red"]],
+                    x=POSITION[2:,0],
+                    y=POSITION[2:,1],
+                    z=POSITION[2:,2],
+                    u=c_NORMAL[:,0],
+                    v=c_NORMAL[:,1],
+                    w=c_NORMAL[:,2],
+                    anchor= "tip",
+                  ))
 
-# print("tangente")
-# for i in range(NUMERO_DE_PONTOS - 1):
-#   print(modulo(tanM[i,:] - Tangente[i,:]),'\t', modulo(tanM[i,:] - Tangente[i,:]) / modulo(tanM[i,:])*100,'%')
+fig.add_trace(go.Cone(
+                    colorscale= [[0, "green"], [1, "green"]],
+                    x=POSITION[2:,0],
+                    y=POSITION[2:,1],
+                    z=POSITION[2:,2],
+                    u=c_BINORMAL[:,0],
+                    v=c_BINORMAL[:,1],
+                    w=c_BINORMAL[:,2],
+                    anchor= "tip",
+                  ))
 
-# print("normal")
-# for i in range(NUMERO_DE_PONTOS - 2):
-#   print(modulo(norM[i,:] - Normal[i,:]),'\t', modulo(norM[i,:] - Normal[i,:]) / modulo(norM[i,:])*100,'%')
+# fig.add_trace(go.Cone(
+#                     colorscale= [[0, "rgb(0, 255, 255)"], [1, "rgb(0, 255, 255)"]],
+#                     x=POSITION[1:,0],
+#                     y=POSITION[1:,1],
+#                     z=POSITION[1:,2],
+#                     u=m_TANGENT[:,0],
+#                     v=m_TANGENT[:,1],
+#                     w=m_TANGENT[:,2],
+#                     anchor= "tip",
+#                   ))
 
-# print("binormal")
-# for i in range(NUMERO_DE_PONTOS - 2):
-#   print(modulo(binM[i,:] - Binormal[i,:]),'\t', modulo(binM[i,:] - Binormal[i,:]) / modulo(binM[i,:])*100,'%')
+# fig.add_trace(go.Cone(
+#                     colorscale= [[0, "rgb(255, 0, 255)"], [1, "rgb(255, 0, 255)"]],
+#                     x=POSITION[2:,0],
+#                     y=POSITION[2:,1],
+#                     z=POSITION[2:,2],
+#                     u=m_NORMAL[:,0],
+#                     v=m_NORMAL[:,1],
+#                     w=m_NORMAL[:,2],
+#                     anchor= "tip",
+#                   ))
+
+# fig.add_trace(go.Cone(
+#                     colorscale= [[0, "rgb(255, 255, 0)"], [1, "rgb(255, 255, 0)"]],
+#                     x=POSITION[2:,0],
+#                     y=POSITION[2:,1],
+#                     z=POSITION[2:,2],
+#                     u=m_BINORMAL[:,0],
+#                     v=m_BINORMAL[:,1],
+#                     w=m_BINORMAL[:,2],
+#                     anchor= "tip",
+#                   ))
 
 
-ax.quiver(*pos[1:].T, *Tangente.T, length=L, color=(0, 0, 1))
-ax.quiver(*pos[2:].T, *Normal.T,   length=L, color=(0, 1, 0))
-ax.quiver(*pos[2:].T, *Binormal.T, length=L, color=(1, 0, 0))
+fig.update_layout(
+    width=700,
+    margin=dict(r=20, l=10, b=10, t=10))
 
-plt.show()
+fig.show()
