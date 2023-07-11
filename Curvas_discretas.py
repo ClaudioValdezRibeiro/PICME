@@ -1,5 +1,4 @@
 import sympy
-import matplotlib.pyplot as plt
 import numpy as np
 import plotly.graph_objects as go
 from math import cos, sin, pi
