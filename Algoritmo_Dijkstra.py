@@ -53,14 +53,15 @@ def dijkstra(grafo, inicial, final):
   return (dist[final], caminho)
 
 # GERA PONTOS ALEATORIOS NO ESPAÇO 2D E SALVA EM "pontos_aleatorios.txt"
-# arquivo = open('pontos_aleatorios.txt','w')
-
-# for i in range(TOTAL_PONTOS):
-#   u = random.uniform(-1,1)
-#   v = random.uniform(-1,1)
-#   arquivo.write(f'{u};{v}\n')
-
-# arquivo.close()
+# with open("pontos_aleatorios.txt", "w") as arquivo:
+#   for i in range(TOTAL_PONTOS):
+#     u = random.uniform(-1,1)
+#     v = random.uniform(-1,1)
+#     while abs(u := random.gauss(0,0.5)) > 1:
+#       pass
+#     while abs(v := random.gauss(0,0.5)) > 1:
+#       pass
+#     arquivo.write(f'{u};{v}\n')
 
 dados = np.loadtxt('pontos_aleatorios.txt', delimiter=';')
 
